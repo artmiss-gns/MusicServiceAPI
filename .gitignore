@@ -1,0 +1,6 @@
+# Exclude pycache files
+__pycache__/
+*.py[cod]
+
+# Exclude the enviormental variables
+.env

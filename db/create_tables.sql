@@ -26,7 +26,7 @@ CREATE TABLE Album (
     name VARCHAR(100) NOT NULL
 );
 
-CREATE TABLE Likes (
+CREATE TABLE Like (
     username VARCHAR(50),
     song_id INT,
     PRIMARY KEY (username, song_id),
@@ -41,7 +41,7 @@ CREATE TABLE Playlist (
     FOREIGN KEY (username) REFERENCES Subscriber(username)
 );
 
-CREATE TABLE Playlist_songs (
+CREATE TABLE Playlist_song (
     playlist_id INT,
     song_id INT,
     PRIMARY KEY (playlist_id, song_id),
