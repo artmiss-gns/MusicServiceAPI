@@ -8,6 +8,9 @@ class get_Song_response(BaseModel) :
     length: int
     likes: int=0
 
+class get_Artist_response(BaseModel):
+    name: str
+    
 class Album(BaseModel) :
     album_id: int
     name: str
