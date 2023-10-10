@@ -195,7 +195,7 @@ INSERT INTO Playlist (username, NAME) VALUES
 ;
 
 
-INSERT INTO Playlist_songs (playlist_id, song_id) VALUES
+INSERT INTO Playlist_song (playlist_id, song_id) VALUES
 (1, 5),
 (1, 7),
 (1, 8)

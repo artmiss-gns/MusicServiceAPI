@@ -14,9 +14,10 @@ def get_db():
         db.close()
 
 
+
 # Create a database URL for SQLAlchemy
 SQLALCHEMY_DATABASE_URL = f"mysql://{settings.DATABASE_USERNAME}:{settings.DATABASE_PASSWORD}\
-@{settings.DATABASE_URL}/{settings.DATABASE_NAME}"
+@{settings.DATABASE_URL}/{settings.DATABASE_NAME}" # ! change DATABASE_NAME in after test
 
 # Create the SQLAlchemy engine
 engine = create_engine(SQLALCHEMY_DATABASE_URL)

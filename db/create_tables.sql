@@ -26,7 +26,7 @@ CREATE TABLE Album (
     name VARCHAR(100) NOT NULL
 );
 
-CREATE TABLE Like (
+CREATE TABLE Likes (
     username VARCHAR(50),
     song_id INT,
     PRIMARY KEY (username, song_id),
