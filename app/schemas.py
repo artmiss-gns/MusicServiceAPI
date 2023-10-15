@@ -10,6 +10,9 @@ class get_Song_response(BaseModel) :
 
 class get_Artist_response(BaseModel):
     name: str
+
+class TokenData(BaseModel):
+    username: str
     
 class Album(BaseModel) :
     album_id: int

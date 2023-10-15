@@ -1,14 +1,13 @@
-from fastapi import FastAPI, APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from app.database import get_db
 
 from sqlalchemy import func, select
-from sqlalchemy.orm import Session, aliased
+from sqlalchemy.orm import Session
 
 import app.models as models
 from app.schemas import get_Song_response
 
 from typing import List, Optional
-from pprint import pprint
 
 router = APIRouter(
     prefix="/songs",
