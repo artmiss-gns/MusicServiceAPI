@@ -61,25 +61,3 @@ def get_songs(
     )
 
     return result
-
-
-
-## equivalent SQL query
-# SELECT DISTINCT Song.name AS `song name`, Artist.name AS `artist`,
-#                  Album.name AS `album`, Song.length,
-#                  count(Like.song_id) AS `likes`
-# FROM Song
-# JOIN Song_artist 
-#     USING(song_id)
-# JOIN Artist
-#     USING (artist_id)
-# LEFT JOIN Album_artist 
-#     USING (artist_id)
-# LEFT JOIN Album
-#     ON album.album_id = Song.album_id
-# JOIN `LIKE` 
-#     ON Like.song_id = Song.song_id
-# GROUP BY Song.name, Artist.name, Album.name, Song.length
-# ORDER BY Artist.name
-# ;
-
