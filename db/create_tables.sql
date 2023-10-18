@@ -80,3 +80,10 @@ CREATE TABLE Album_artist (
     FOREIGN KEY (album_id) REFERENCES Album(album_id),
     FOREIGN KEY (artist_id) REFERENCES Artist(artist_id)
 );
+
+CREATE TABLE Artist_registration (
+    username VARCHAR(50) PRIMARY KEY,
+    artist_id INT PRIMARY KEY AUTO_INCREMENT,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    PASSWORD VARCHAR(100) NOT NULL
+);

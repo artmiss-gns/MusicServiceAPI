@@ -200,3 +200,14 @@ INSERT INTO Playlist_song (playlist_id, song_id) VALUES
 (1, 7),
 (1, 8)
 ;
+
+
+INSERT INTO Artist_registration (artist_id, username, email, password)
+VALUES
+    (1, 'Drake', 'Drake@gmail.com', 'Drakepassword'),
+    (2, 'NF', 'NF@gmail.com', 'NFpassword'),
+    (3, 'Halsey', 'Halsey@gmail.com', 'Halseypassword'),
+    (4, 'HIM', 'HIM@gmail.com', 'HIMpassword'),
+    (5, 'Eminem', 'Eminem@gmail.com', 'Eminempassword'),
+    (6, 'Adele', 'Adele@gmail.com', 'Adelepassword'),
+    (7, 'LinkinPark', 'LinkinPark@gmail.com', 'LinkinParkpassword');

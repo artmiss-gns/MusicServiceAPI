@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, TEXT, ForeignKey
+from sqlalchemy import Column, Integer, ForeignKey, String
 from sqlalchemy.orm import relationship
 
 from app.database import Base
@@ -9,7 +9,7 @@ class Album(Base) :
     __tablename__ = "Album" # __tablename__ should be the same name as the database's table name
 
     album_id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(TEXT, nullable=False)
+    name = Column(String(255), nullable=False)
 
 class Album_artist(Base) :
     __tablename__ = "Album_artist"
@@ -21,7 +21,7 @@ class Artist(Base):
    __tablename__ = 'Artist'
 
    artist_id = Column(Integer, primary_key=True, autoincrement=True)
-   name = Column(TEXT,unique=True, nullable=False)
+   name = Column(String(255),unique=True, nullable=False)
 
 class Artist_genre(Base ) :
     __tablename__ = "Artist_genre"
@@ -34,20 +34,20 @@ class Genre(Base):
     __tablename__ = 'Genre'
 
     genre_id = Column(Integer, primary_key=True, autoincrement=True) 
-    genre_name = Column(TEXT, unique=True, nullable=False)
+    genre_name = Column(String(255), unique=True, nullable=False)
 
 class Likes(Base):
     __tablename__ = 'Likes'
 
-    username = Column(TEXT, ForeignKey('Subscriber.username'), primary_key=True)
+    username = Column(String(255), ForeignKey('Subscriber.username'), primary_key=True)
     song_id = Column(Integer, ForeignKey('Song.song_id'), primary_key=True)
 
 class Playlist(Base):
     __tablename__ = 'Playlist'
 
     playlist_id = Column(Integer, primary_key=True, autoincrement=True)
-    username = Column(TEXT, ForeignKey('Subscriber.username')) 
-    name = Column(TEXT, nullable=False)
+    username = Column(String(255), ForeignKey('Subscriber.username')) 
+    name = Column(String(255), nullable=False)
 
 
 class Playlist_song(Base) :
@@ -62,7 +62,7 @@ class Song(Base):
     
     song_id = Column(Integer, primary_key=True, autoincrement=True)
     album_id = Column(Integer, ForeignKey("Album.album_id"), nullable=True) # TODO : does it need ondelte="cascade" ?
-    name = Column(TEXT, nullable=False)
+    name = Column(String(255), nullable=False)
     length = Column(Integer, nullable=False)
 
 
@@ -73,7 +73,7 @@ class Song_artist(Base) :
     artist_id = Column(Integer, ForeignKey("Artist.artist_id", ondelete="cascade"), primary_key=True)
 
 
-class Song_genre() :
+class Song_genre(Base) :
     __tablename__ = "Song_genre"
 
     song_id = Column(Integer, ForeignKey("Song.song_id", ondelete="cascade"), primary_key=True)
@@ -83,9 +83,14 @@ class Song_genre() :
 class Subscriber(Base):
     __tablename__ = 'Subscriber'
 
-    username = Column(TEXT, primary_key=True)
-    email = Column(TEXT, unique=True, nullable=False)
-    password = Column(TEXT, nullable=False)
+    username = Column(String(255), primary_key=True)
+    email = Column(String(255), unique=True, nullable=False)
+    password = Column(String(255), nullable=False)
 
-
-
+class ArtistRegistration(Base):
+    __tablename__ = 'Artist_registration'
+    
+    username = Column(String(255), primary_key=True)
+    artist_id = Column(Integer, primary_key=True, autoincrement=True)
+    email = Column(String(255), unique=True, nullable=False)
+    password = Column(String(255), nullable=False)

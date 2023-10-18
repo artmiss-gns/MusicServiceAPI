@@ -3,9 +3,12 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 import app.models as models
+from app.database import engine
 
 # importing the routes
 from app.routers import songs, artists, login, signup
+# creating the tables // will be removed after implementing Alembic
+models.Base.metadata.create_all(bind=engine, checkfirst=True)
 
 app = FastAPI()
 app.include_router(songs.router) # you can also add the prefix and tags here
