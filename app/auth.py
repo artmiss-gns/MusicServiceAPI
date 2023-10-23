@@ -36,14 +36,14 @@ def verify_token(token: str) :
         payload = jwt.decode(token, key=SECRET_KEY, algorithms=ALGORITHM)
         username = payload.get("username")
         if username : # the verification is successful
-            token_data = TokenData(username=username)
+            token_data = TokenData(username=username, role=payload.get('role'))
             return token_data
         else :
             raise create_access_token
-        
+    
     except ExpiredSignatureError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token Expired, Login again")
-    except JWTError : # when the given token is wrong
+    except JWTError : # when the given token is wrong)
         raise credentials_exception
     
 
@@ -52,6 +52,12 @@ def get_current_user(token:str = Depends(oauth2_scheme), db:Session = Depends(ge
     by receiving the TokenData returns User model
     '''
     token_data = verify_token(token)
-    user = db.query(models.Subscriber).filter(token_data.username == models.Subscriber.username).first()
+    if token_data.role == "artist" :
+        current_user = db.query(models.Artist_registration).filter(token_data.username == models.Artist_registration.username).first()
+    else : # subscriber
+        current_user = db.query(models.Subscriber).filter(token_data.username == models.Subscriber.username).first()
     
-    return user
+    if current_user is None :
+        HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    
+    return current_user

@@ -90,7 +90,7 @@ class Subscriber(Base):
 class Artist_registration(Base):
     __tablename__ = 'Artist_registration'
     
-    artist_id = Column(Integer, primary_key=True, autoincrement=True)
+    artist_id = Column(Integer,  ForeignKey("Artist.artist_id", ondelete="cascade"), primary_key=True, autoincrement=True)
     username = Column(String(255), primary_key=True)
     email = Column(String(255), unique=True, nullable=False)
     password = Column(String(255), nullable=False)
