@@ -39,29 +39,22 @@ def add_song(song_name:Annotated[str, Form()],
             song_length:Annotated[int, Form()], album_name:Annotated[str, Form()]=None, db:Session = Depends(get_db),
             current_user:models.Artist_registration = Depends(get_current_user)
         ) :
-    return current_user
     album = db.query(models.Album).filter(album_name == models.Album.name).first() 
     if album and album_name:
         album_id = album.album_id
-    elif album_name : # if album_name is specified, but no album found in the database
+    elif not album and album_name : # if album_name is specified, but no album found in the database
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Album name not found, create an album first if you haven't created one"
         )
-    else :
+    else : 
         album_id = None
 
     new_song = schemas.Song(name=song_name, album_id=album_id, length=song_length)
-    song_id = db.query(models.Song).filter(models.Song.name == song_name).first()
     db.add(models.Song(**new_song.model_dump()))
+    song_id =  db.query(func.max(models.Song.song_id)).scalar()
     # ! THIS CAN BE A DATABASE DESIGN FLAW, BUT WHENEVER A NEW SONG IS ADDED, WE SHOULD ADD A ROW TO "Song_artist" TABLE TOO
     song_artist = schemas.Song_artist(song_id=song_id, artist_id=current_user.artist_id)
     db.add(models.Song_artist(**song_artist.model_dump()))
 
     db.commit()
-
-
-
-
-def add_album() :
-    pass

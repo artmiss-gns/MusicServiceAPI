@@ -56,7 +56,7 @@ def get_current_user(token:str = Depends(oauth2_scheme), db:Session = Depends(ge
         current_user = db.query(models.Artist_registration).filter(token_data.username == models.Artist_registration.username).first()
     else : # subscriber
         current_user = db.query(models.Subscriber).filter(token_data.username == models.Subscriber.username).first()
-    
+        
     if current_user is None :
         HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     
