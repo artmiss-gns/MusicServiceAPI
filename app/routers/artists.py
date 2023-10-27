@@ -40,6 +40,15 @@ def add_song(song_name:Annotated[str, Form()],
             song_length:Annotated[int, Form()], album_name:Annotated[str, Form()]=None, db:Session = Depends(get_db),
             current_user:models.Artist_registration = Depends(get_current_user)
         ) :
+    # preventing an artist to add a duplicate song name
+    # ! it can be fixed with database 'UniqueConstraint', BUT i dont know how :)
+    query = db.query(models.Song).filter(models.Song.name == song_name)
+    if query.first() :
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="There is already song with this name for the current user"
+        )
+
     album = db.query(models.Album).filter(album_name == models.Album.name).first() 
     if album and album_name:
         album_id = album.album_id
@@ -119,6 +128,20 @@ def remove_song(songs_names:list = Body(), current_user:models.Artist_registrati
 def add_album(album_name:Annotated[str, Form()], db:Session = Depends(get_db),
             current_artist:models.Artist_registration = Depends(get_current_user)) :
     # checking if the current user already have an album name 
+    query = db.query(models.Album)\
+        .join(
+            models.Album_artist,
+            models.Album.album_id == models.Album_artist.album_id
+        )\
+        .filter(
+            models.Album.name == album_name, models.Album_artist.artist_id == current_artist.artist_id
+        )
+    if query.first() : # if there is already a album with this name for the current user :
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="There is already an album with this name for the current user"
+        )
+    
     max_album_id = db.query(func.max(models.Album.album_id)).scalar()
     new_album_id = 1 if max_album_id is None else max_album_id+1
 
@@ -140,7 +163,7 @@ def remove_album(album_name:Annotated[str, Form()], db:Session = Depends(get_db)
         .filter(
             models.Album.name == album_name, models.Album_artist.artist_id == current_artist.artist_id
         )\
-        .all()
+        .first()
 
     if album :
         db.delete(album)
