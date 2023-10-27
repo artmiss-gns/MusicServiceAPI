@@ -34,6 +34,7 @@ def get_artists(db: Session=Depends(get_db), artist_name:Optional[str] =None) ->
     
     return result
 
+
 @router.post("/add_song", status_code=status.HTTP_201_CREATED)
 def add_song(song_name:Annotated[str, Form()],
             song_length:Annotated[int, Form()], album_name:Annotated[str, Form()]=None, db:Session = Depends(get_db),
@@ -106,10 +107,46 @@ def remove_song(songs_names:list = Body(), current_user:models.Artist_registrati
         song_id = r.song_id
         artist_id = r.artist_id
 
+        # by only deleting the row from Song table, due to ondelete="cascade" on Song_artist, its equivalent row will be removed
+        # so no need to remove it from there too, but pay attention that you should commit or flush the changes so it deletes too
         db.delete( # deleting from Song table
             db.query(models.Song).filter(models.Song.song_id == song_id).first()
         ) 
-        db.delete( # deleting from Song_artist table
-            db.query(models.Song_artist).filter(models.Song_artist.song_id == song_id, models.Song_artist.artist_id == artist_id).first()
-        ) 
         db.commit()
+
+
+@router.post("/add_album", status_code=status.HTTP_201_CREATED)
+def add_album(album_name:Annotated[str, Form()], db:Session = Depends(get_db),
+            current_artist:models.Artist_registration = Depends(get_current_user)) :
+    # checking if the current user already have an album name 
+    max_album_id = db.query(func.max(models.Album.album_id)).scalar()
+    new_album_id = 1 if max_album_id is None else max_album_id+1
+
+    db.add(models.Album(album_id=new_album_id, name=album_name))
+    db.add(models.Album_artist(album_id=new_album_id, artist_id=current_artist.artist_id)) # ! again by having a trigger here,
+                                                                                           # ! we could prevent adding a row manually
+    db.commit()
+
+
+@router.delete("/remove_album", status_code=status.HTTP_200_OK)
+def remove_album(album_name:Annotated[str, Form()], db:Session = Depends(get_db),
+        current_artist:models.Artist_registration = Depends(get_current_user)) :
+    
+    album = db.query(models.Album)\
+        .join(
+            models.Album_artist,
+            models.Album.album_id == models.Album_artist.album_id
+        )\
+        .filter(
+            models.Album.name == album_name, models.Album_artist.artist_id == current_artist.artist_id
+        )\
+        .all()
+
+    if album :
+        db.delete(album)
+        db.commit()
+    else :
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Album Doesn't exists!"
+        )

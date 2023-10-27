@@ -50,7 +50,6 @@ def get_songs(
                 (models.Album.name == album_name) if album_name!=None else True,
                 (models.Song.name == song_name) if song_name!=None else True
             )
-    print(query)
     result = db.execute(query).all()
     # converting to pydantic model 
     result = list(
