@@ -25,6 +25,6 @@ class Song(BaseModel) :
         orm_mode = True
 
 class Song_artist(BaseModel) :
-    song_id: int
+    song_id: Optional[int]=None
     artist_id: int
 

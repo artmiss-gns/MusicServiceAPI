@@ -42,7 +42,7 @@ def get_songs(
             .join(models.Artist, models.Artist.artist_id == models.Song_artist.artist_id)\
             .join(models.Album_artist, models.Artist.artist_id == models.Album_artist.artist_id, isouter=True)\
             .join(models.Album, models.Album.album_id == models.Song.album_id, isouter=True)\
-            .join(models.Likes, models.Likes.song_id == models.Song.song_id)\
+            .join(models.Likes, models.Likes.song_id == models.Song.song_id, isouter=True)\
             .group_by(models.Song.name, models.Artist.name, models.Album.name, models.Song.length)\
             .order_by(models.Artist.name)\
             .filter(
@@ -50,7 +50,7 @@ def get_songs(
                 (models.Album.name == album_name) if album_name!=None else True,
                 (models.Song.name == song_name) if song_name!=None else True
             )
-
+    print(query)
     result = db.execute(query).all()
     # converting to pydantic model 
     result = list(
