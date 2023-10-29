@@ -9,7 +9,7 @@ import app.schemas as schemas
 
 from app.schemas import get_Artist_response
 from app.utils import map_data_to_model
-from app.auth import get_current_user
+from app.auth import get_current_user, get_current_artist
 
 from typing import List, Optional, Annotated
 
@@ -38,7 +38,7 @@ def get_artists(db: Session=Depends(get_db), artist_name:Optional[str] =None) ->
 @router.post("/add_song", status_code=status.HTTP_201_CREATED)
 def add_song(song_name:Annotated[str, Form()],
             song_length:Annotated[int, Form()], album_name:Annotated[str, Form()]=None, db:Session = Depends(get_db),
-            current_user:models.Artist_registration = Depends(get_current_user)
+            current_user:models.Artist_registration = Depends(get_current_artist)
         ) :
     # preventing an artist to add a duplicate song name
     # ! it can be fixed with database 'UniqueConstraint', BUT i dont know how :)
@@ -81,7 +81,7 @@ def add_song(song_name:Annotated[str, Form()],
 
 
 @router.delete("/remove_songs")
-def remove_song(songs_names:list = Body(), current_user:models.Artist_registration = Depends(get_current_user), db:Session = Depends(get_db)): 
+def remove_song(songs_names:list = Body(), current_user:models.Artist_registration = Depends(get_current_artist), db:Session = Depends(get_db)): 
     '''
     Deletes multiple songs
     the data that is sent must be a json formed list
@@ -126,7 +126,7 @@ def remove_song(songs_names:list = Body(), current_user:models.Artist_registrati
 
 @router.post("/add_album", status_code=status.HTTP_201_CREATED)
 def add_album(album_name:Annotated[str, Form()], db:Session = Depends(get_db),
-            current_artist:models.Artist_registration = Depends(get_current_user)) :
+            current_artist:models.Artist_registration = Depends(get_current_artist)) :
     # checking if the current user already have an album name 
     query = db.query(models.Album)\
         .join(
@@ -153,7 +153,7 @@ def add_album(album_name:Annotated[str, Form()], db:Session = Depends(get_db),
 
 @router.delete("/remove_album", status_code=status.HTTP_200_OK)
 def remove_album(album_name:Annotated[str, Form()], db:Session = Depends(get_db),
-        current_artist:models.Artist_registration = Depends(get_current_user)) :
+        current_artist:models.Artist_registration = Depends(get_current_artist)) :
     
     album = db.query(models.Album)\
         .join(

@@ -53,7 +53,10 @@ def get_current_user(token:str = Depends(oauth2_scheme), db:Session = Depends(ge
     '''
     token_data = verify_token(token)
     if token_data.role == "artist" :
-        current_user = db.query(models.Artist_registration).filter(token_data.username == models.Artist_registration.username).first()
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Artists not allowed, log in as a user!"
+        )
     elif token_data.role == "subscriber": # subscriber
         current_user = db.query(models.Subscriber).filter(token_data.username == models.Subscriber.username).first()
     else : 
@@ -63,3 +66,21 @@ def get_current_user(token:str = Depends(oauth2_scheme), db:Session = Depends(ge
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     
     return current_user
+
+
+def get_current_artist(token:str = Depends(oauth2_scheme), db:Session = Depends(get_db)):
+    token_data = verify_token(token)
+    if token_data.role == "artist" :
+        current_artist = db.query(models.Artist_registration).filter(token_data.username == models.Artist_registration.username).first()
+    elif token_data.role == "subscriber": # subscriber
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"Subscribers not allowed, log in as a Artist!"
+        )
+    else : 
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="role not defined!")
+    
+    if current_artist is None :
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    
+    return current_artist
