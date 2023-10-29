@@ -28,3 +28,12 @@ class Song_artist(BaseModel) :
     song_id: Optional[int]=None
     artist_id: int
 
+class Playlist(BaseModel): 
+    playlist_id: Optional[str]=None
+    username: str # user's username
+    name: str
+
+class Subscriber(BaseModel) :
+    username: str
+    email: str # TODO : fix the email type as Email
+    password: str

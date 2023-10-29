@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from passlib.context import CryptContext
+from fastapi import HTTPException, status
 
 class Password :
     password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -19,3 +20,11 @@ def map_data_to_model(model: BaseModel, data: list) -> list:
     return [mapper(row) for row in data]
 
 
+def user_type_validator(input_type, expected_type) :
+    if not isinstance(input_type, expected_type) :
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"expected {expected_type} user type"
+        )
+    else :
+        return True
