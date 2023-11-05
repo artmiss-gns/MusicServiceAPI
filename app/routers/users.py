@@ -36,5 +36,24 @@ def add_playlist(playlist_name:Annotated[str, Form()],db:Session = Depends(get_d
     db.add(models.Playlist(**playlist.model_dump()))
     db.commit()
 
-    return current_user
-    
+
+@router.delete("/playlists", status_code=status.HTTP_200_OK)
+def remove_playlist(playlist_name:Annotated[str, Form()], playlist_id:Annotated[str, Form()]=None, db:Session = Depends(get_db),
+                current_user=Depends(get_current_user)) :
+    playlist = db.query(models.Playlist).filter(models.Playlist.name==playlist_name).all()
+    if len(playlist) > 1 and playlist_id is None :
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Multiple playlists found with the same name. Please provide the playlist ID for deletion.",
+        )
+    elif len(playlist) > 1 and playlist_id is not None :
+        playlist = db.query(models.Playlist).filter(models.Playlist.name==playlist_name, models.Playlist.playlist_id == playlist_id).first()
+
+    if not playlist :
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No playlist found!"
+        )
+
+    db.delete(playlist)
+    db.commit()
