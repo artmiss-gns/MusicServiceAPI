@@ -18,20 +18,22 @@ router = APIRouter(
     tags=["signup"]
 )
 
+# subscriber signup
 @router.post("/users", status_code=status.HTTP_201_CREATED) # for normal users
 def sign_up(username: Annotated[str, Form()], password: Annotated[str, Form()], email: Annotated[EmailStr, Form()],
             db: Session=Depends(get_db)) :
     
-    if db.query(models.Subscriber).filter(models.Subscriber.username == username).first() :
+    if db.query(models.Subscriber).filter(models.Subscriber.username == username).first() : # duplicate username
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Username already exists")
     
-    if db.query(models.Subscriber).filter(models.Subscriber.username == username).first() :
+    if db.query(models.Subscriber).filter(models.Subscriber.email == email).first() : # duplicate email
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email address already exists")
 
     new_user = models.Subscriber(username=username, password=Password().get_password_hash(password), email=email)
     db.add(new_user)
     db.commit()
 
+# artist signup
 @router.post("/artists", status_code=status.HTTP_201_CREATED)
 def sign_up(username: Annotated[str, Form()], password: Annotated[str, Form()], email: Annotated[EmailStr, Form()],
             db: Session=Depends(get_db)) :
@@ -39,7 +41,7 @@ def sign_up(username: Annotated[str, Form()], password: Annotated[str, Form()], 
     if db.query(models.Artist_registration).filter(models.Artist_registration.username == username).first() :
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Username already exists")
     
-    if db.query(models.Artist_registration).filter(models.Artist_registration.username == username).first() :
+    if db.query(models.Artist_registration).filter(models.Artist_registration.email == email).first() :
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="Email address already exists")
 
 
