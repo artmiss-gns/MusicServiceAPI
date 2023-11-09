@@ -38,11 +38,14 @@ def get_artists(db: Session=Depends(get_db), artist_name:Optional[str] =None) ->
 @router.post("/add_song", status_code=status.HTTP_201_CREATED)
 def add_song(song_name:Annotated[str, Form()],
             song_length:Annotated[int, Form()], album_name:Annotated[str, Form()]=None, db:Session = Depends(get_db),
-            current_user:models.Artist_registration = Depends(get_current_artist)
+            current_artist:models.Artist_registration = Depends(get_current_artist)
         ) :
     # preventing an artist to add a duplicate song name
     # ! it can be fixed with database 'UniqueConstraint', BUT i dont know how :)
-    query = db.query(models.Song).filter(models.Song.name == song_name)
+    query = db.query(models.Song)\
+        .join(models.Song_artist, models.Song_artist.song_id == models.Song.song_id)\
+        .filter(models.Song.name == song_name, models.Song_artist.artist_id == current_artist.artist_id)
+    
     if query.first() :
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -75,21 +78,28 @@ def add_song(song_name:Annotated[str, Form()],
     #         session.add(new_Song_artist)
 
 
-    song_artist = schemas.Song_artist(song_id=song_id, artist_id=current_user.artist_id)
+    song_artist = schemas.Song_artist(song_id=song_id, artist_id=current_artist.artist_id)
     db.add(models.Song_artist(**song_artist.model_dump()))
     db.commit()
 
 
 @router.delete("/remove_songs")
-def remove_song(songs_names:list = Body(), current_user:models.Artist_registration = Depends(get_current_artist), db:Session = Depends(get_db)): 
+def remove_song(
+    songs_names:list = Body(),
+    current_artist:models.Artist_registration = Depends(get_current_artist),
+    db:Session = Depends(get_db)
+): 
     '''
     Deletes multiple songs
     the data that is sent must be a json formed list
     '''
-    results_info = db.query(models.Song).filter(models.Song.name.in_(songs_names)).all()
-    results = db.query(models.Song.song_id).filter(models.Song.name.in_(songs_names)).all()
-    songs_id = [result[0] for result in results]
+    selected_song_info = db.query(models.Song)\
+        .join(models.Song_artist, models.Song_artist.song_id == models.Song.song_id)\
+        .filter(models.Song.name.in_(songs_names), models.Song_artist.artist_id == current_artist.artist_id).all()
     
+    # results = db.query(models.Song).filter(models.Song.name.in_(songs_names)).all()
+    songs_id = [result.song_id for result in selected_song_info]
+
     if len(songs_id) != len(songs_names) :
         # when the artist sends a song name that doesn't exists on the database, this can be sent as a warning too
         raise HTTPException(
@@ -100,7 +110,7 @@ def remove_song(songs_names:list = Body(), current_user:models.Artist_registrati
     # check if all the given songs belongs to the current user , if not we raise an error
     for song_id in songs_id :
         query = db.query(models.Song_artist).filter(
-                    (models.Song_artist.artist_id == current_user.artist_id), (models.Song_artist.song_id == song_id)
+                    (models.Song_artist.artist_id == current_artist.artist_id), (models.Song_artist.song_id == song_id)
                 ) 
         if query.first(): # if the song belongs to the current user
             continue
@@ -152,9 +162,11 @@ def add_album(album_name:Annotated[str, Form()], db:Session = Depends(get_db),
 
 
 @router.delete("/remove_album", status_code=status.HTTP_200_OK)
-def remove_album(album_name:Annotated[str, Form()], db:Session = Depends(get_db),
-        current_artist:models.Artist_registration = Depends(get_current_artist)) :
-    
+def remove_album(
+    album_name:Annotated[str, Form()],
+    db:Session = Depends(get_db),
+    current_artist:models.Artist_registration = Depends(get_current_artist)
+) :
     album = db.query(models.Album)\
         .join(
             models.Album_artist,
