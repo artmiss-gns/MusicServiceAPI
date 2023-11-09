@@ -53,8 +53,8 @@ class Playlist(Base):
 class Playlist_song(Base) :
     __tablename__ = 'Playlist_song'
 
-    playlist_id = Column(Integer, ForeignKey('Playlist.playlist_id'), primary_key=True)
-    song_id = Column(Integer, ForeignKey('Song.song_id'), primary_key=True)
+    playlist_id = Column(Integer, ForeignKey('Playlist.playlist_id', ondelete="cascade"), primary_key=True)
+    song_id = Column(Integer, ForeignKey('Song.song_id', ondelete="cascade"), primary_key=True)
 
 
 class Song(Base):
