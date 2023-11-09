@@ -162,9 +162,11 @@ def add_album(album_name:Annotated[str, Form()], db:Session = Depends(get_db),
 
 
 @router.delete("/remove_album", status_code=status.HTTP_200_OK)
-def remove_album(album_name:Annotated[str, Form()], db:Session = Depends(get_db),
-        current_artist:models.Artist_registration = Depends(get_current_artist)) :
-    
+def remove_album(
+    album_name:Annotated[str, Form()],
+    db:Session = Depends(get_db),
+    current_artist:models.Artist_registration = Depends(get_current_artist)
+) :
     album = db.query(models.Album)\
         .join(
             models.Album_artist,

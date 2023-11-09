@@ -61,7 +61,7 @@ class Song(Base):
     __tablename__ = 'Song'
     
     song_id = Column(Integer, primary_key=True, autoincrement=True)
-    album_id = Column(Integer, ForeignKey("Album.album_id"), nullable=True) # TODO : does it need ondelte="cascade" ?
+    album_id = Column(Integer, ForeignKey("Album.album_id", ondelete="cascade"), nullable=True) # TODO : does it need ondelte="cascade" ?
     name = Column(String(255), nullable=False)
     length = Column(Integer, nullable=False)
 
