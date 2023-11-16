@@ -37,15 +37,24 @@ def add_playlist(playlist_name:Annotated[str, Form()],db:Session = Depends(get_d
     db.add(models.Playlist(**playlist.model_dump()))
     db.commit()
 
-
+# remove a playlist
 @router.delete("/playlists", status_code=status.HTTP_200_OK)
-def remove_playlist(playlist_name:Annotated[str, Form()], playlist_id:Annotated[str, Form()]=None, db:Session = Depends(get_db),
-                current_user=Depends(get_current_user)) :
-    playlist = db.query(models.Playlist).filter(models.Playlist.name==playlist_name).all()
+def remove_playlist(
+        playlist_name:Annotated[str, Form()] = None,
+        playlist_id:Annotated[str, Form()] = None,
+        db:Session = Depends(get_db),
+        current_user: models.Subscriber=Depends(get_current_user),
+    ) :
+    if playlist and playlist_id :
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You should use either playlist_name or playlist_id",
+        )
+    playlist = db.query(models.Playlist).filter(models.Playlist.name==playlist_name, models.Playlist.username==current_user.username).all()
     if not playlist :
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="No playlist found!"
+            detail="No playlist found for the current user!"
         )
     if len(playlist) > 1 and playlist_id is None :
         raise HTTPException(
@@ -60,17 +69,28 @@ def remove_playlist(playlist_name:Annotated[str, Form()], playlist_id:Annotated[
     db.delete(playlist)
     db.commit()
 
+# add a song to the playlist
 @router.post("/playlists/add_song", status_code=status.HTTP_201_CREATED)
 def playlist_add_song(
-    playlist_name: Annotated[str, Form()],
-    song_name: Annotated[str, Form()],
+    playlist_name: Annotated[str, Form()] = None,
+    song_name: Annotated[str, Form()] = None,
     playlist_id: Annotated[str, Form()] = None,
     song_id: Annotated[int, Form()] = None,
     current_user: models.Subscriber = Depends(get_current_user),
     db:Session = Depends(get_db),
 ):
     # The user can add duplicate songs to the playlist, this can be changed later
-
+    
+    if song_name and song_id :
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You should use either song_name or song_id",
+        )
+    if playlist and playlist_id :
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You should use either playlist_name or playlist_id",
+        )
     # checking whether the playlist is valid or not
     playlist = db.query(models.Playlist).filter(models.Playlist.name==playlist_name, models.Playlist.username==current_user.username).all()
     if not playlist :
@@ -127,13 +147,23 @@ def playlist_add_song(
 # removing a song from a playlist  
 @router.delete("/playlists/remove_song", status_code=status.HTTP_201_CREATED)
 def playlist_remove_song(
-    playlist_name: Annotated[str, Form()],
-    song_name: Annotated[str, Form()],
+    playlist_name: Annotated[str, Form()] = None,
+    song_name: Annotated[str, Form()] = None,
     playlist_id: Annotated[str, Form()] = None,
     song_id: Annotated[int, Form()] = None,
     current_user: models.Subscriber = Depends(get_current_user),
     db:Session = Depends(get_db),
 ):
+    if song_name and song_id :
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You should use either song_name or song_id",
+        )
+    if playlist and playlist_id :
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You should use either playlist_name or playlist_id",
+        )
     if song_id is None :
         song = db.query(models.Song).filter(models.Song.name == song_name).all()
         if not song : 
@@ -177,3 +207,53 @@ def playlist_remove_song(
         )
     db.delete(playlist_song)
     db.commit()
+
+# like or remove a song from liked songs
+@router.post("/like")
+def like_song(
+    song_name: Annotated[str, Form()] = None,
+    song_id: Annotated[int, Form()] = None,
+    current_user:models.Subscriber = Depends(get_current_user),
+    db:Session = Depends(get_db),
+):
+    """
+    Like or Unlike a song (similar to instagram or spotify like system)
+    """
+    if song_name and song_id :
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You should use either song_name or song_id",
+        )
+    if song_id is None :
+        song = db.query(models.Song).filter(models.Song.name == song_name).all()
+        if not song :
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Song not found",
+            )
+        if len(song) > 1 : # we have multiple songs with this name 
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Multiple Songs found with the same name. Please provide the Song ID.",
+            )
+        else :
+            song = song[0]
+            song_id = song.song_id
+    # check if the song is already liked
+    liked_song = db.query(models.Likes).filter(models.Likes.username==current_user.username, models.Likes.song_id==song_id).first() 
+    # committing or delete the new entry to the database.
+    try :
+        if liked_song : # liking a song
+            db.delete(liked_song)
+            db.commit()
+            return "removed from liked songs"
+        else : # removing a like 
+            new_like = models.Likes(username=current_user.username, song_id=song_id)
+            db.add(new_like)
+            db.commit()
+            return "added to liked songs"
+    except IntegrityError as e: # catch the errors while committing
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="IntegrityError: Something went wrong!",
+        )
